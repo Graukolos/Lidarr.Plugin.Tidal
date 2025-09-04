@@ -156,9 +156,16 @@ public class Downloader
         track.Tag.TrackCount = uint.Parse(albumPage["numberOfTracks"]!.ToString());
         track.Tag.Disc = uint.Parse(trackData["volumeNumber"]!.ToString());
         track.Tag.DiscCount = uint.Parse(albumPage["numberOfVolumes"]!.ToString());
+        track.Tag.ISRC = trackData["isrc"]!.ToString();
+        track.Tag.BeatsPerMinute = uint.Parse(trackData["bpm"]!.ToString());
         if (albumArt != null)
             track.Tag.Pictures = [new TagLib.Picture(new TagLib.ByteVector(albumArt))];
         track.Tag.Lyrics = lyrics;
+
+        if (track.Tag is TagLib.Ogg.XiphComment xiph)
+        {
+            xiph.SetField("BARCODE", albumPage["barcodeId"]!.ToString());
+        }
 
         track.Save();
     }
