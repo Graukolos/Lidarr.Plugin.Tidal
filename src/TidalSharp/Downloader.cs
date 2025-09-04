@@ -159,7 +159,7 @@ public class Downloader
         track.Tag.DiscCount = uint.Parse(albumPage["numberOfVolumes"]!.ToString());
         track.Tag.ISRC = trackData["isrc"]!.ToString();
         if (uint.TryParse(trackData["bpm"]!.ToString(), out bpm))
-            track.Tag.BeatsPerMinute = BinaryPrimitives;
+            track.Tag.BeatsPerMinute = bpm;
         if (albumArt != null)
             track.Tag.Pictures = [new TagLib.Picture(new TagLib.ByteVector(albumArt))];
         track.Tag.Lyrics = lyrics;
