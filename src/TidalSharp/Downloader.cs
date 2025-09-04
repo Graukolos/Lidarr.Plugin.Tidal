@@ -158,15 +158,17 @@ public class Downloader
         track.Tag.Disc = uint.Parse(trackData["volumeNumber"]!.ToString());
         track.Tag.DiscCount = uint.Parse(albumPage["numberOfVolumes"]!.ToString());
         track.Tag.ISRC = trackData["isrc"]!.ToString();
-        if (uint.TryParse(trackData["bpm"]!.ToString(), out var bpm))
-            track.Tag.BeatsPerMinute = bpm;
         if (albumArt != null)
             track.Tag.Pictures = [new TagLib.Picture(new TagLib.ByteVector(albumArt))];
         track.Tag.Lyrics = lyrics;
 
-        if (track.Tag is TagLib.Ogg.XiphComment xiph)
+        if (track.Tag is TagLib.Mpeg4.AppleTag tag)
         {
-            xiph.SetField("BARCODE", albumPage["barcodeId"]!.ToString());
+            tag.removeFreeForm("BARCODE");
+            tag.SetFreeForm("BARCODE", System.Text.Encoding.UTF8.GetBytes(albumPage["upc"]!.ToString()));
+            tag.removeFreeForm("BPM");
+            if (uint.TryParse(trackData["bpm"]!.ToString(), out var bpm))
+                tag.setFreeForm("BPM", System.Text.Encoding.UTF8.GetBytes(bpm));
         }
 
         track.Save();
