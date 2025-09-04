@@ -1,6 +1,7 @@
 using Newtonsoft.Json.Linq;
 using NzbDrone.Common.Http;
 using Org.BouncyCastle.Tsp;
+using System.Buffers.Binary;
 using System.Globalization;
 using TidalSharp.Data;
 using TidalSharp.Downloading;
@@ -76,7 +77,7 @@ public class Downloader
         return response.ResponseData;
     }
 
-    public async Task ApplyMetadataToTrackStream(string trackId, DownloadData<Stream> trackData, MediaResolution coverResolution = MediaResolution.s640, string lyrics = "", CancellationToken token = default)
+    public async Task ApplyMetadataToTrackStream(string trackId, DownloadData<Stream> trackData, MediaResolution coverResolution = MediaResolution.s1280, string lyrics = "", CancellationToken token = default)
     {
         byte[] magicBuffer = new byte[4];
         await trackData.Data.ReadAsync(magicBuffer.AsMemory(0, 4), token);
@@ -90,7 +91,7 @@ public class Downloader
         trackData.Data.Seek(0, SeekOrigin.Begin);
     }
 
-    public async Task ApplyMetadataToTrackBytes(string trackId, DownloadData<byte[]> trackData, MediaResolution coverResolution = MediaResolution.s640, string lyrics = "", CancellationToken token = default)
+    public async Task ApplyMetadataToTrackBytes(string trackId, DownloadData<byte[]> trackData, MediaResolution coverResolution = MediaResolution.s1280, string lyrics = "", CancellationToken token = default)
     {
         FileBytesAbstraction abstraction = new("track" + trackData.FileExtension, trackData.Data);
         using TagLib.File file = TagLib.File.Create(abstraction);
@@ -101,7 +102,7 @@ public class Downloader
         trackData.Data = finalData;
     }
 
-    public async Task ApplyMetadataToFile(string trackId, string trackPath, MediaResolution coverResolution = MediaResolution.s640, string lyrics = "", CancellationToken token = default)
+    public async Task ApplyMetadataToFile(string trackId, string trackPath, MediaResolution coverResolution = MediaResolution.s1280, string lyrics = "", CancellationToken token = default)
     {
         using TagLib.File file = TagLib.File.Create(trackPath);
         await ApplyMetadataToTagLibFile(file, trackId, coverResolution, lyrics, token);
@@ -136,7 +137,7 @@ public class Downloader
 
     // TODO: video downloading, this is less important as this is mainly for lidarr
 
-    private async Task ApplyMetadataToTagLibFile(TagLib.File track, string trackId, MediaResolution coverResolution = MediaResolution.s640, string lyrics = "", CancellationToken token = default)
+    private async Task ApplyMetadataToTagLibFile(TagLib.File track, string trackId, MediaResolution coverResolution = MediaResolution.s1280, string lyrics = "", CancellationToken token = default)
     {
         JToken trackData = await _api.GetTrack(trackId, token);
         string albumId = trackData["album"]!["id"]!.ToString();
@@ -157,6 +158,8 @@ public class Downloader
         track.Tag.Disc = uint.Parse(trackData["volumeNumber"]!.ToString());
         track.Tag.DiscCount = uint.Parse(albumPage["numberOfVolumes"]!.ToString());
         track.Tag.ISRC = trackData["isrc"]!.ToString();
+        if (uint.TryParse(trackData["bpm"]!.ToString(), out bpm))
+            track.Tag.BeatsPerMinute = BinaryPrimitives;
         if (albumArt != null)
             track.Tag.Pictures = [new TagLib.Picture(new TagLib.ByteVector(albumArt))];
         track.Tag.Lyrics = lyrics;
