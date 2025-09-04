@@ -162,14 +162,16 @@ public class Downloader
             track.Tag.Pictures = [new TagLib.Picture(new TagLib.ByteVector(albumArt))];
         track.Tag.Lyrics = lyrics;
 
-        if (track.Tag is TagLib.Mpeg4.AppleTag tag)
-        {
-            tag.removeFreeForm("BARCODE");
-            tag.SetFreeForm("BARCODE", System.Text.Encoding.UTF8.GetBytes(albumPage["upc"]!.ToString()));
-            tag.removeFreeForm("BPM");
-            if (uint.TryParse(trackData["bpm"]!.ToString(), out var bpm))
-                tag.setFreeForm("BPM", System.Text.Encoding.UTF8.GetBytes(bpm));
-        }
+        Console.WriteLine(track.Tag.GetType());
+
+        //if (track.Tag is TagLib.Mpeg4.AppleTag tag)
+        //{
+        //    tag.removeFreeForm("BARCODE");
+        //    tag.SetFreeForm("BARCODE", System.Text.Encoding.UTF8.GetBytes(albumPage["upc"]!.ToString()));
+        //    tag.removeFreeForm("BPM");
+        //    if (uint.TryParse(trackData["bpm"]!.ToString(), out var bpm))
+        //        tag.setFreeForm("BPM", System.Text.Encoding.UTF8.GetBytes(bpm));
+        //}
 
         track.Save();
     }
